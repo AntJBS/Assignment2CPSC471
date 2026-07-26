@@ -1,26 +1,52 @@
-# rdt_receiver.py
+# rdt_sender.py
 import socket
 import sys
-from rdt_common import BUFFER_SIZE, make_packet, parse_packet
-if len(sys.argv) != 3:
-    print("Usage: python rdt_receiver.py listen_port output_file")
+from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet
+if len(sys.argv) != 4:
+    print("Usage: python rdt_sender.py receiver_host receiver_port input_file")
     sys.exit(1)
-listen_port = int(sys.argv[1])
-output_file = sys.argv[2]
+receiver_host = sys.argv[1]
+receiver_port = int(sys.argv[2])
+input_file = sys.argv[3]
+receiver_addr = (receiver_host, receiver_port)
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("", listen_port))
-expected_seq = 0
-last_good_seq = 1
-
-with open(output_file, "wb") as f:
+sock.settimeout(TIMEOUT)
+seq = 0
+with open(input_file, "rb") as f:
     while True:
-        packet, sender_addr = sock.recvfrom(BUFFER_SIZE)
-        # Fill in start
-        # Parse packet and check checksum.
-        # If DATA packet has expected seq, write payload and ACK it.
-        # If DATA packet is duplicate, resend ACK for last_good_seq.
-        # If packet is corrupt, ignore it or resend last ACK.
-        # If FIN arrives, send FINACK and break.
-        # Fill in end
+        data = f.read(MAX_PAYLOAD)
+        if not data:
+            break
+        acked = False
+        while not acked:
+            # Send DATA packet for current seq.
+            pkt = make_packet("DATA", seq, data)
+            sock.sendto(pkt, receiver_addr)
+            # Wait for ACK.
+            try:
+                resp, _ = sock.recvfrom(BUFFER_SIZE)
+                p_type, p_seq, _, is_valid = parse_packet(resp)
+
+                # If ACK is valid and matches seq, set acked = True.
+                if is_valid and p_type == "ACK" and p_seq == seq:
+                    acked = True
+            except socket.timeout:
+                # If timeout occurs, retransmit this same packet.
+                pass
+        seq = 1 - seq
+# Send FIN until a valid FINACK is received.
+fin_acked = False
+while not fin_acked:
+    fin_pkt = make_packet("FIN", seq)
+    sock.sendto(fin_pkt, receiver_addr)
+
+    try: 
+        resp, _ = sock.recvfrom(BUFFER_SIZE)
+        p_type, p_seq, _, is_valid = parse_packet(resp)
+        if is_valid and p_type == "FINACK" and p_seq == seq:
+            fin_acked = True
+    except socket.timeout:
+        pass
+
 sock.close()
-print("Receiver complete.")
+print("Transfer complete.")
