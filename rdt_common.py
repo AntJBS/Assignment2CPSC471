@@ -7,19 +7,19 @@ BUFFER_SIZE = 4096
 # TEST TOGGLES
 import random
 # Normal Run
-# TEST_MODE = False
-# LOSE_RATE = .2
-# CORRUPT_RATE = .2
+TEST_MODE = False
+LOSE_RATE = .2
+CORRUPT_RATE = .2
 
-# Loss Case
+# Lose Case
 # TEST_MODE = True
 # LOSE_RATE = 0.3
 # CORRUPT_RATE = 0.0   
 
 # Corruption Case
-TEST_MODE = True
-LOSE_RATE = 0.0
-CORRUPT_RATE = 0.3
+# TEST_MODE = True
+# LOSE_RATE = 0.0
+# CORRUPT_RATE = 0.3
 
 # Large File Case
 # TEST_MODE = False
