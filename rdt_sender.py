@@ -1,10 +1,9 @@
 # rdt_sender.py
 # MORE TEST STUFF
-from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet, send_packet_simulated
-
 import socket
 import sys
-from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet
+from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet, send_packet_simulated
+
 if len(sys.argv) != 4:
     print("Usage: python rdt_sender.py receiver_host receiver_port input_file")
     sys.exit(1)

@@ -31,7 +31,7 @@ def send_packet_simulated(sock, packet, addr):
     rand = random.random()
 
     if rand < LOSE_RATE:
-        print("[Simulation] This packet is corrupted!")
+        print("[Simulation] This packet is dropped!")
         return
     elif rand < (LOSE_RATE + CORRUPT_RATE):
         print("[Simulation] This packet is corrputed!")
@@ -87,6 +87,6 @@ def parse_packet(packet):
     chk = checksum(packet_type, seq_num, payload)
     is_length_valid = (len(payload) == expected_length)
     is_chk_valid = (chk == sent_sum)
-    is_valid= is_length_valid == is_chk_valid
+    is_valid= is_length_valid and is_chk_valid
     return packet_type, seq_num, payload, is_valid
     # Fill in end

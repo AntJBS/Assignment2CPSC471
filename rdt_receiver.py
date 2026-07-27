@@ -1,11 +1,10 @@
 # rdt_receiver.py
 
 # MORE TEST STUFF
-from rdt_common import BUFFER_SIZE, make_packet, parse_packet, send_packet_simulated
-
 import socket
 import sys
-from rdt_common import BUFFER_SIZE, make_packet, parse_packet
+from rdt_common import BUFFER_SIZE, make_packet, parse_packet, send_packet_simulated
+
 if len(sys.argv) != 3:
     print("Usage: python rdt_receiver.py listen_port output_file")
     sys.exit(1)
