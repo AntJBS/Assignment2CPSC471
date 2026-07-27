@@ -1,4 +1,7 @@
 # rdt_sender.py
+# MORE TEST STUFF
+from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet, send_packet_simulated
+
 import socket
 import sys
 from rdt_common import BUFFER_SIZE, MAX_PAYLOAD, TIMEOUT, make_packet, parse_packet
@@ -21,7 +24,7 @@ with open(input_file, "rb") as f:
         while not acked:
             # Send DATA packet for current seq.
             pkt = make_packet("DATA", seq, data)
-            sock.sendto(pkt, receiver_addr)
+            send_packet_simulated(sock, pkt, receiver_addr)
             # Wait for ACK.
             try:
                 resp, _ = sock.recvfrom(BUFFER_SIZE)
@@ -30,7 +33,7 @@ with open(input_file, "rb") as f:
                 # If ACK is valid and matches seq, set acked = True.
                 if is_valid and p_type == "ACK" and p_seq == seq:
                     acked = True
-            except socket.timeout:
+            except (socket.timeout, ConnectionResetError):
                 # If timeout occurs, retransmit this same packet.
                 pass
         seq = 1 - seq
@@ -38,14 +41,14 @@ with open(input_file, "rb") as f:
 fin_acked = False
 while not fin_acked:
     fin_pkt = make_packet("FIN", seq)
-    sock.sendto(fin_pkt, receiver_addr)
+    send_packet_simulated(sock, fin_pkt, receiver_addr)
 
     try: 
         resp, _ = sock.recvfrom(BUFFER_SIZE)
         p_type, p_seq, _, is_valid = parse_packet(resp)
         if is_valid and p_type == "FINACK" and p_seq == seq:
             fin_acked = True
-    except socket.timeout:
+    except (socket.timeout, ConnectionResetError):
         pass
 
 sock.close()
